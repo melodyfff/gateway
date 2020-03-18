@@ -1,0 +1,19 @@
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    eureka-server-u-r-l-context: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # false 关闭自我保护机制，保证不可用服务及时踢出 （本地开发和测试环境使用）
+    enable-self-preservation: false
+    # 清理间隔，默认(60 * 1000)
+    eviction-interval-timer-in-ms: 60000
+
+spring:
+  application:
+    name: eureka-server
