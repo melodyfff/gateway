@@ -7,9 +7,9 @@
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>route</artifactId>
+    <artifactId>server1</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>route</name>
+    <name>server1</name>
 
     <dependencies>
         <dependency>
@@ -25,4 +25,5 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
     </dependencies>
+
 </project>

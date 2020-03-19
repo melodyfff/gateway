@@ -1,9 +1,11 @@
 server:
-  port: 8080
+  port: 8070
 
 eureka:
   instance:
     prefer-ip-address: true
+    lease-expiration-duration-in-seconds: 90 # 过期踢出时间，默认90S
+    lease-renewal-interval-in-seconds: 30 # 心跳检测，间隔一段时间向服务端发送心跳，证明存活，默认30
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
@@ -15,9 +17,9 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: server-1
+        - id: server1
           # lb代表从注册中心获取服务
-          uri: lb://server-1
+          uri: lb://server1
           predicates:
             # 转发对外的路径,即: curl http://localhost:8080/hello 实际访问的是内部lb://xc-zookeeper-client/获取的服务
             - Path=/server1/**

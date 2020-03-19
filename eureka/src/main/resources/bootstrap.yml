@@ -4,6 +4,8 @@ server:
 eureka:
   instance:
     hostname: localhost
+    lease-expiration-duration-in-seconds: 90 # 过期踢出时间，默认90S
+    lease-renewal-interval-in-seconds: 30 # 心跳检测，间隔一段时间向服务端发送心跳，证明存活，默认30
   client:
     register-with-eureka: false
     fetch-registry: false

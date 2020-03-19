@@ -12,6 +12,7 @@
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>gateway</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,8 +23,9 @@
 
     <modules>
         <module>eureka</module>
+        <module>config</module>
         <module>route</module>
-        <module>server-1</module>
+        <module>server1</module>
     </modules>
 
     <dependencies>
