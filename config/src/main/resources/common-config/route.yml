@@ -28,3 +28,18 @@ spring:
             - StripPrefix=1
             - Authorize=false
             - CostTime=true
+
+
+# GET http://localhost:8080/actuator/gateway/routes 查看生效路由信息
+# POST http://localhost:8080/actuator/gateway/routes/${ID} 新增路由信息
+# DELETE http://localhost:8080/actuator/gateway/routes/${ID} 删除路由信息
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
