@@ -14,6 +14,22 @@ spring:
   application:
     name: route
 
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:route.db
+    username: admin
+    password: admin
+    type: org.sqlite.javax.SQLiteConnectionPoolDataSource
+
+  jpa:
+    database-platform: com.xinchen.gateway.route.common.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: com.xinchen.gateway.route.common.dialect.SQLiteDialect
+
+
   cloud:
     gateway:
       routes:
