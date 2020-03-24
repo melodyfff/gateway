@@ -1,7 +1,52 @@
+server:
+  port: 8080
+
 spring:
+  application:
+    name: route
+
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:route.db
+    username: admin
+    password: admin
+    type: org.sqlite.javax.SQLiteConnectionPoolDataSource
+
+  jpa:
+    database-platform: com.xinchen.gateway.route.common.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: com.xinchen.gateway.route.common.dialect.SQLiteDialect
+
+
   cloud:
-    config:
-      name: route
-#      profile: dev
-      uri: http://localhost:8888
-#      label: application.yml
+    gateway:
+      routes:
+        - id: server1
+          # lb代表从注册中心获取服务
+          uri: lb://server1
+          predicates:
+            # 转发对外的路径,即: curl http://localhost:8080/hello 实际访问的是内部lb://xc-zookeeper-client/获取的服务
+            - Path=/server1/**
+          filters:
+            # 注意,这个地方是去除前缀,否则会带上/hello去访问注册中心的服务
+            - StripPrefix=1
+            - Authorize=false
+            - CostTime=true
+
+
+# GET http://localhost:8080/actuator/gateway/routes 查看生效路由信息
+# POST http://localhost:8080/actuator/gateway/routes/${ID} 新增路由信息
+# DELETE http://localhost:8080/actuator/gateway/routes/${ID} 删除路由信息
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    gateway:
+      enabled: true
+    health:
+      show-details: always
