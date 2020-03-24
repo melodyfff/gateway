@@ -1,8 +1,8 @@
 package com.xinchen.gateway.route.api;
 
-import com.xinchen.gateway.route.dto.GatewayFilterDefinition;
-import com.xinchen.gateway.route.dto.GatewayPredicateDefinition;
-import com.xinchen.gateway.route.dto.GatewayRouteDefinition;
+import com.xinchen.gateway.route.common.dto.GatewayFilterDefinition;
+import com.xinchen.gateway.route.common.dto.GatewayPredicateDefinition;
+import com.xinchen.gateway.route.common.dto.GatewayRouteDefinition;
 import com.xinchen.gateway.route.dynamic.DynamicRouteService;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;

@@ -1,4 +1,4 @@
-package com.xinchen.gateway.route.dto;
+package com.xinchen.gateway.route.common.dto;
 
 import lombok.Data;
 
