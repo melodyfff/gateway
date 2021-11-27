@@ -1,7 +1,0 @@
-spring:
-  cloud:
-    config:
-      name: route
-#      profile: dev
-      uri: http://localhost:8888
-#      label: application.yml
