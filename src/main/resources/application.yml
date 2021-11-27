@@ -1,0 +1,32 @@
+test:
+  #  hostport: httpbin.org:80
+  #  hostport: localhost:5000
+  #  uri: http://httpbin.org:80 or lb://httpbin
+  uri: http://httpbin.org:80
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+#        - PrefixPath=/httpbin # http://localhost:8080/get -> http://localhost:8080/httpbin/get
+        - AddRequestHeader=hello,hello
+        - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+
+      routes: # 按顺序往下匹配
+        - id: this_is_a_test
+          uri: ${test.uri}
+          order: 2
+          predicates:
+            - Path=/httpbin/**
+          filters:
+            - StripPrefix=1 # http://127.0.0.1:8080/httpbin/get -> http://httpbin.org/get
+            - Throttle=true # ThrottleGatewayFilterFactory 自定义filter
+
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
+    reactor.netty: DEBUG
