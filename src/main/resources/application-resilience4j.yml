@@ -1,0 +1,113 @@
+# 相关配置 https://resilience4j.readme.io/docs/getting-started-3
+
+# 顺序 Retry ( CircuitBreaker ( RateLimiter ( TimeLimiter ( Bulkhead ( Function ) ) ) ) )
+
+#################################
+# 断路器 — CircuitBreaker - https://resilience4j.readme.io/docs/circuitbreaker
+#################################
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowType: TIME_BASED # 滑动窗口类型: 基于计数-COUNT_BASED 基于时间-TIME_BASED
+      slidingWindowSize: 100 # 滑动窗口大小: 基于计数的滑动窗口：汇总最近 N 次调用的结果 ； 基于时间的滑动窗口：汇总最近 N 秒的调用结果
+      permittedNumberOfCallsInHalfOpenState: 10 # 配置断路器半开时允许的呼叫数量
+      failureRateThreshold: 60 # 故障率阈值： 以百分比形式配置失败率阈值，当故障率等于或大于阈值时，断路器转换为断开并开始短路调用。
+      slowCallRateThreshold: 100 # 慢呼叫率阈值: 以百分比配置阈值,
+      slowCallDurationThreshold: 60000ms # 慢呼叫持续时间阈值: 配置持续时间阈值，高于该阈值的呼叫被视为慢速呼叫并增加slowCallRateThreshold的速率。
+#      maxWaitDurationInHalfOpenState: 0 # 配置最大等待持续时间（ms），控制断路器在切换到打开状态之前可以保持在半开状态的最长时间。值 0 表示断路器将在 HalfOpen 状态无限等待，直到所有允许的调用都完成。
+      minimumNumberOfCalls: 100 # 配置在 CircuitBreaker 计算错误率或慢速调用率之前所需的最小调用数（每个滑动窗口周期）,当请求达到这个数值才会计算失败率，CircuitBreaker 才会打开
+      waitDurationInOpenState: 10000ms # 断路器在从打开转换为半开之前应等待的时间
+      automaticTransitionFromOpenToHalfOpenEnabled: false # 如果为true,断路器从打开变为半开状态,会有一个线程进行监控，如果为false则只在调用的时候才去转换状态
+      eventConsumerBufferSize: 10 # 事件缓冲区大小
+      registerHealthIndicator: true # 健康监测
+      ignoreExceptions: # 忽略异常列表，认为是正确的
+#        - io.github.robwin.exception.BusinessException
+    myTestConfig:
+      slidingWindowSize: 50
+      permittedNumberOfCallsInHalfOpenState: 10
+
+  instances:
+    backendA:
+      baseConfig: default
+      waitDurationInOpenState: 5000ms
+    backendB:
+      baseConfig: myTestConfig
+
+#################################
+# 并发调用隔离 — Bulkhead - https://resilience4j.readme.io/docs/bulkhead
+#################################
+resilience4j.bulkhead:
+  instances:
+    backendA:
+      maxConcurrentCalls: 10 # 最大并发调用数：默认值为25，隔板允许的最大并行执行量
+      maxWaitDuration: 0 # 最大等待时间： 默认值为0 ， 尝试进入饱和隔板时应阻塞线程的最长时间
+      maxThreadPoolSize: 4 # 最大线程池大小: 默认值为Runtime.getRuntime().availableProcessors()
+      coreThreadPoolSize: 3 # 核心线程池大小: 默认值为Runtime.getRuntime().availableProcessors() - 1
+      queueCapacity: 100 # 队列容量: 默认值为100
+      keepAliveDuration: 20ms # 默认值为20ms
+    backendB:
+      maxWaitDuration: 10ms
+      maxConcurrentCalls: 20
+
+#################################
+# 限流 — RateLimiter - https://resilience4j.readme.io/docs/ratelimiter
+#################################
+resilience4j.ratelimiter: # see: {@link io.github.resilience4j.ratelimiter.configure.RateLimiterConfiguration}
+  configs:
+    default:
+      limitForPeriod: 1 # 期间限制：一个限制刷新期间可用的权限数
+      limitRefreshPeriod: 1s # 限制刷新时间: 默认500ns
+      timeoutDuration: 1s  # 超时时间：默认5s
+      eventConsumerBufferSize: 100
+  limiters:
+    backendA: # 限制某个方法的调用率不高于10 req/ms
+      limitForPeriod: 1 # 期间限制：一个限制刷新期间可用的权限数
+      limitRefreshPeriod: 1s # 限制刷新时间: 默认500ns
+      timeoutDuration: 1s  # 超时时间：默认5s
+  instances:
+    backendA: # 限制某个方法的调用率不高于10 req/ms
+      limitForPeriod: 1 # 期间限制：一个限制刷新期间可用的权限数
+      limitRefreshPeriod: 1s # 限制刷新时间: 默认500ns
+      timeoutDuration: 1s  # 超时时间：默认5s
+    backendB:
+      limitForPeriod: 6
+      limitRefreshPeriod: 500ms
+      timeoutDuration: 3s
+      registerHealthIndicator: true # 监控检测
+      eventConsumerBufferSize: 100  # 事件缓冲区大小
+
+#################################
+# 超时 — TimeLimiter 这里的时间限制主要是发送请求一定时间内，请求已经是发送出的状态 - https://resilience4j.readme.io/docs/ratelimiter
+#################################
+resilience4j.timelimiter:
+  instances:
+    backendA:
+      timeoutDuration: 500ms # 修改这里的值观察CircuitBreakerFilter的变化
+      cancelRunningFuture: true
+    backendB:
+      timeoutDuration: 1s
+      cancelRunningFuture: false
+
+#################################
+# 重试 — retry
+#################################
+resilience4j.retry:
+  instances:
+    backendA:
+      maxAttempts: 3 # 最大尝试次数： 默认3
+      waitDuration: 500ms # 等待时间：默认500ms ,重试尝试之间的固定等待时间
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+      ignoreExceptions:
+#        - io.github.robwin.exception.BusinessException
+    backendB:
+      maxAttempts: 3
+      waitDuration: 10s
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+      ignoreExceptions:
+#        - io.github.robwin.exception.BusinessException

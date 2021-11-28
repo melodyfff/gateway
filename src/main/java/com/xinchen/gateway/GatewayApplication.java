@@ -58,4 +58,13 @@ public class GatewayApplication {
                         request -> ServerResponse.ok().body(BodyInserters.fromValue("hello"))
                 );
     }
+
+    @Bean
+    public RouterFunction<ServerResponse> testCircuitBreakerError() {
+        return RouterFunctions
+                .route(
+                        RequestPredicates.path("/circuitBreakerError"),
+                        request -> ServerResponse.ok().body(BodyInserters.fromValue("CircuitBreaker Work , Something wrong."))
+                );
+    }
 }

@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            myTestService1:
+              - uri: 'http://localhost:9000' # python -m httpbin.core --port 9000
+              - serviceId: myTestService2
+                uri: 'http://httpbin.org:80'

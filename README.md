@@ -2,10 +2,14 @@
 
 > Spring Cloud Gateway
 
-- Cloud Version:
-- Spring Boot Version:
-- Spring Framework Version:
+- Cloud Version: 2020.0.4
+- Spring Boot Version: 2.5.7
+- Spring Framework Version: 5.3.13
 
+测试准备：
+- pip install httpbin
+- python -m httpbin.core --port 9000
+- 如果需要使用gateway自带的request-rate-limiter,需要本地启动redis
 
 ## Changes
 由于`Spring Cloud 2020.0.0`发布后 

@@ -1,32 +1,25 @@
-test:
-  #  hostport: httpbin.org:80
-  #  hostport: localhost:5000
-  #  uri: http://httpbin.org:80 or lb://httpbin
-  uri: http://httpbin.org:80
+server:
+  port: 8888
 
 spring:
-  cloud:
-    gateway:
-      default-filters:
-#        - PrefixPath=/httpbin # http://localhost:8080/get -> http://localhost:8080/httpbin/get
-        - AddRequestHeader=hello,hello
-        - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+  config:
+    use-legacy-processing: false # Spring Boot 2.4.0后进行了配置读取升级，如果想使用以前的这里设置为true ,注此方法可能不适应高版本
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
 
-      routes: # 按顺序往下匹配
-        - id: this_is_a_test
-          uri: ${test.uri}
-          order: 2
-          predicates:
-            - Path=/httpbin/**
-          filters:
-            - StripPrefix=1 # http://127.0.0.1:8080/httpbin/get -> http://httpbin.org/get
-            - Throttle=true # ThrottleGatewayFilterFactory 自定义filter
+  profiles:
+    active: dev
+    group:
+      dev:
+        - services
+        - gateway
+        - resilience4j # 中断器相关配置
+        - limit # gateway自带基于redis的限流 ,需要放开pom中的redis限制
+        - logger
 
-
-logging:
-  level:
-    org.springframework.cloud.gateway: TRACE
-    org.springframework.http.server.reactive: DEBUG
-    org.springframework.web.reactive: DEBUG
-    reactor.ipc.netty: DEBUG
-    reactor.netty: DEBUG
+management:
+  endpoint:
+    bulkheads:
+      enabled: true

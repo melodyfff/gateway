@@ -1,0 +1,57 @@
+test:
+#  hostport: localhost:9000
+  hostport: httpbin.org:80
+  uri: http://${test.hostport}
+#  uri: lb://httpbin
+
+spring:
+  cloud:
+#    discovery:
+#      client:
+#        simple:
+#          instances:
+#            myTestService1:
+#              - uri: 'http://localhost:9000' # python -m httpbin.core --port 9000
+#              - serviceId: myTestService2
+#                uri: 'http://httpbin.org:80'
+
+    circuitbreaker: # Spring Cloud 的断路器，与gateway的断路器不同
+      resilience4j:
+        enable: true
+
+    loadbalancer: # 负载均衡 ，默认开启 , 默认使用的是轮询的方式
+      enabled: true
+    gateway:
+      loadbalancer:
+        use404: false # when a service instance cannot be found 默认返回503 ，开启后返回404
+
+      filter:
+        circuit-breaker: # 断路器 Spring Cloud Gateway 的断路器，与cloud的断路器不同
+          enabled: true # 这里默认关闭，如果不开启，则CircuitBreaker无效
+
+      default-filters:
+#        - PrefixPath=/httpbin # http://localhost:8080/get -> http://localhost:8080/httpbin/get
+        - AddRequestHeader=hello,hello
+        - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+      routes: # 按顺序往下匹配
+        - id: this_is_a_test
+          uri: lb://myTestService1 # 详情请看application-services.yml 这里由于没有使用注册中心，本地手动配置服务
+          order: 2
+          predicates:
+            - Path=/httpbin/**
+          filters:
+            - StripPrefix=1 # http://127.0.0.1:8080/httpbin/get -> http://httpbin.org/get
+            - Throttle=true # ThrottleGatewayFilterFactory 自定义filter
+        - id: circuitbreaker_resilience4j_test # 中断器测试
+          uri: lb://myTestService1
+          order: 2
+          predicates:
+            - Path=/resilience4j/**
+          filters:
+            - StripPrefix=1 # http://127.0.0.1:8080/httpbin/get -> http://httpbin.org/get
+            - CircuitBreakerStatePrinter # 熔断相关状态监测
+            - name: CircuitBreaker # 熔断拦截器
+              args:
+                name: backendA
+                fallbackUri: forward:/circuitBreakerError
+#            - CircuitBreaker=backendA # 断路器 使用resilience4j替代Hystrix ，这里的backendA是自定义的，如果找不到则使用默认的配置

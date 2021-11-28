@@ -1,0 +1,39 @@
+spring:
+  cloud:
+    gateway:
+      redis-rate-limiter:
+        config: # 这里主要是可能会有很多route需要拦截处理，可能有不同值，可以统一在这里加上routeId配置，并且需要加上Filter: RequestRateLimiter
+          gateway_limit_test_by_config:
+            replenishRate: 100
+            burstCapacity: 100
+            requestedTokens: 100
+        remaining-header: X-RateLimit-Remaining # 默认值
+        replenish-rate-header: X-RateLimit-Replenish-Rate # 默认值
+        requested-tokens-header: X-RateLimit-Requested-Tokens # 默认值
+
+
+      filter:
+        request-rate-limiter:  # 关于是否使用gateway 自带的限流： https://spring.io/blog/2021/04/05/api-rate-limiting-with-spring-cloud-gateway
+          enabled: true
+      routes: # 按顺序往下匹配
+        - id: gateway_limit_test # 中断器测试
+          uri: lb://myTestService1
+          order: 2
+          predicates:
+            - Path=/limit/**
+          filters:
+            - StripPrefix=1 # http://127.0.0.1:8080/httpbin/get -> http://httpbin.org/get
+            - name: RequestRateLimiter # 需要redis ,进行限流 ，默认返回429 Too Many Requests
+              args:
+                redis-rate-limiter.replenishRate: 10 # 令牌入桶的每秒速度相当于QPS
+                redis-rate-limiter.burstCapacity: 10 # 桶内能装多少个令牌，相当于峰值
+                redis-rate-limiter.requestedTokens: 10 # 每个请求需要的令牌数，一般为 1
+                key-resolver: "#{@apiKeyResolver}"
+        - id: gateway_limit_test_by_config # 中断器测试
+          uri: lb://myTestService1
+          order: 2
+          predicates:
+            - Path=/limit2/**
+          filters:
+            - StripPrefix=1 # http://127.0.0.1:8080/httpbin/get -> http://httpbin.org/get
+            - RequestRateLimiter # 这里使用的是spring.cloud.gateway.redis-rate-limiter.config.${routeId} 中的配置
